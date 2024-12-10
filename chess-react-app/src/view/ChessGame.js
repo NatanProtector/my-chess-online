@@ -11,6 +11,24 @@ function ChessGame({ roomKey }) {
 
     const [communicationLog, setCommunicationLog] = useState('Test');
 
+    const getGameOverText = () => {
+        if (game.isGameOver()) {
+            if (game.isCheckmate()) {
+                // Checkmate: Determine the winner based on the current turn.
+                const winner = game.turn() === "w" ? "Black" : "White";
+                return (`Checkmate! ${winner} wins.`);
+            } else if (game.isThreefoldRepetition()) {
+                return ("The game is a draw by threefold repetition.");
+            } else if (game.isInsufficientMaterial()) {
+                return ("The game is a draw due to insufficient material.");
+            } else if (game.isDraw()) {
+                return ("The game is a draw.");
+            } else {
+                return ""
+            }
+        }
+    }
+
     const transmitMove = () => {
         socket.emit('make-move', roomKey, textInput, (response) => {
             if (response.success) {
@@ -38,6 +56,8 @@ function ChessGame({ roomKey }) {
         })
     };
 
+
+    
     const onDrop = (sourceSquare, targetSquare,pieceType) => {
         const piece = game.get(sourceSquare);
 
@@ -84,6 +104,7 @@ function ChessGame({ roomKey }) {
     const resetGame = () => {
       setGame(new Chess()); // Reset the game
     };
+
     return (
         <div>
             <h1>Chess Game</h1>
@@ -102,7 +123,7 @@ function ChessGame({ roomKey }) {
             {
                 game.isGameOver() && (
                     <div>
-                        <h2>Game Over</h2>
+                        <h2>{getGameOverText()}</h2>
                     </div>
                 )
             }
