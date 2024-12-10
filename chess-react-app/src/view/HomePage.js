@@ -10,7 +10,8 @@ function HomePage() {
     const createRoom = () => {
         socket.emit('create-room', (newRoomKey) => {
             setRoomKey(newRoomKey);
-            console.log('New room key:', newRoomKey);
+            
+            // navigate('/game', { state: { newRoomKey } });
         });
     };
 

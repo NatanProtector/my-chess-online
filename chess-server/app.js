@@ -1,9 +1,17 @@
+/**
+ * Problems:
+ * - The game is only deletes when the room is empty after a player leaves, which is a massive flaw.
+ * - players make moves for both white and black
+ * - 
+ */
+
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const path = require('path');
 
+const chessGameWraper = require('./chess.js');
 
 const app = express();
 const server = http.createServer(app);
@@ -23,9 +31,8 @@ io.on('connection', (socket) => {
     // Create a room
     socket.on('create-room', (callback) => {
         console.log(`creating room`);
-        
-        const roomKey = Math.random().toString(36).substring(2, 8); // Generate a random 6-char key
-        rooms[roomKey] = { players: [] };
+        const roomKey = Math.random().toString(36).substring(2, 8); // Generate a random 6-char key !!!NEED TO FIX, USE CRYPTO!!!
+        rooms[roomKey] = { players: [], game: new chessGameWraper() };
         socket.join(roomKey);
         console.log(`Room created: ${roomKey}`);
         callback(roomKey); // Send the key back to the client
@@ -47,14 +54,18 @@ io.on('connection', (socket) => {
 
     // Make a move
     socket.on('make-move', (roomKey, move, callback) => {
-        console.log(`Move in room ${roomKey}:`,move);
 
-        // Validate the move or perform necessary checks here if needed
-        const isValid = true; // Replace this with your actual validation logic
+        const result = rooms[roomKey].game.makeMove(move.sourceSquare, move.targetSquare, move.pieceType);
 
-        if (isValid) {
+        if (result && result.success) {
+
+            const update = {
+                message: result.message,
+                board: rooms[roomKey].game.getBoard()
+            }
+
             // Broadcast the move to other clients in the room
-            socket.broadcast.to(roomKey).emit('update-board', move);
+            io.to(roomKey).emit('update-board', update);
 
             // Respond to the client with success
             callback({ success: true, message: 'Move accepted' });
@@ -71,20 +82,20 @@ io.on('connection', (socket) => {
             if (room.players.includes(socket.id)) {
                 room.players = room.players.filter((id) => id !== socket.id);
                 io.to(key).emit('player-left', socket.id);
-                if (room.players.length === 0) delete rooms[key];
-                break;
+
             }
+            if (room.players.length === 0) delete rooms[key];
+            break;
         }
     });
 });
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '..','build','src', 'index.html'));    
-    // Respond with the react app
 })
-app.get('/game', (req, res) => {
+app.get('/game/', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'chess-react-app', 'build', 'index.html'));
-  });
+});
 
 server.listen(3000, () => {
     console.log('Server running on port 3000');
