@@ -46,10 +46,6 @@ The server is deployed and fully functional, and you can start playing immediate
 - The server is up and running, and it's possible to play chess. However, there's still room for visual improvements and polish. If you'd like to contribute to improving the user interface or the overall experience, feel free to contact me!
 - I am currently taking a reinforcement learning class, and I plan to develop my own chess AI. Once the AI is ready, I will add the possibility to play against it in the app.
 
-## Contributing
-
-If you're interested in contributing to this project, feel free to fork the repository and open a pull request. Suggestions for visual improvements and enhancements are always welcome!
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
