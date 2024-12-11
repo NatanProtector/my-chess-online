@@ -30,7 +30,7 @@ function HomePage() {
 
     return (
         <div>
-            <h1>Welcome to Chess Rooms</h1>
+            <h1>Welcome to Natan's Chess Rooms</h1>
             <button onClick={createRoom}>Create Room</button>
             <div>
                 <input
