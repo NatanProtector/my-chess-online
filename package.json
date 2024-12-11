@@ -1,6 +1,7 @@
 {
     "name": "chess-server",
     "scripts": {
+        "install-all": "npm --prefix ./chess-react-app install && npm --prefix ./chess-server install",
         "build": "npm --prefix ./chess-react-app run build",
         "start": "npm --prefix ./chess-server start"
     },

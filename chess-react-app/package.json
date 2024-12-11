@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "chess-server": "file:..",
     "chess.js": "^1.0.0-beta.8",
     "cra-template": "1.2.0",
     "react": "^19.0.0",
