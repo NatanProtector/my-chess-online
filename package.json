@@ -1,0 +1,11 @@
+{
+    "name": "chess-server",
+    "scripts": {
+        "build": "npm --prefix ./chess-react-app run build",
+        "start": "npm --prefix ./chess-server start"
+    },
+    "author": "Natan Protector",
+    "license": "ISC",
+    "description": "A server for playing chess with a friend"
+  }
+  
