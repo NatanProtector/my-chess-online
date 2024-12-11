@@ -7,6 +7,15 @@ function ChessGame({ roomKey }) {
     
     const [game, setGame] = useState(new Chess());
 
+    const [game_arangement, setGameArangement] = useState([]);
+
+    const [game_state_text, setGameStateText] = useState("");
+
+    const getMyColor = (game_arangement) => {
+        const myColor = game_arangement.find((player) => player.id === socket.id)?.color;
+        return myColor;
+    };
+
     const getGameOverText = () => {
         if (game.isGameOver()) {
             if (game.isCheckmate()) {
@@ -41,8 +50,17 @@ function ChessGame({ roomKey }) {
             handleUpdateFromServer(update); // Update the board based on the received move
         });
 
-        socket.on('player-joined', (players) => {
-            console.log(`Players: ${players}`);
+        socket.on('player-joined', (game_arangement) => {
+
+            setGameArangement(game_arangement);
+
+            if (getMyColor(game_arangement) === "w") {
+                setGameStateText("Game started. you are white");
+            } else if (getMyColor(game_arangement) === "b") {
+                setGameStateText("Game started. you are black");
+            } else {
+                setGameStateText("Waiting for players");
+            }
             
         });
 
@@ -51,8 +69,6 @@ function ChessGame({ roomKey }) {
 
     // Handle making moves
     const handleUpdateFromServer = (update) => {
-
-        console.log(update.message);
 
         setGame(
             new Chess(update.board)
@@ -64,6 +80,11 @@ function ChessGame({ roomKey }) {
         
         const move = {sourceSquare, targetSquare,pieceType}
 
+        if (game.turn() !== getMyColor(game_arangement)) {
+            console.log("It is not your turn");
+            return false;
+        }        
+
         transmitMove(move);
 
         return true;
@@ -73,10 +94,17 @@ function ChessGame({ roomKey }) {
         <div>
             <h1>Chess Game</h1>
             <h3>Room Key: {roomKey}</h3>
+            <h3>{game_state_text}</h3>
             <div style={{width: "420px", height: "420px"}}>
-                <Chessboard 
-                    position={game.fen()} 
-                    onPieceDrop={onDrop} />
+                {
+                    game_arangement.length != 0 &&
+                        <Chessboard 
+                        boardOrientation={getMyColor(game_arangement) === "w" ? "white" : "black"}
+                        position={game.fen()} 
+                        onPieceDrop={onDrop}
+                    />     
+                }
+
             </div>
 
             {

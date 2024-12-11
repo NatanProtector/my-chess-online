@@ -8,10 +8,11 @@ function HomePage() {
     const navigate = useNavigate();
 
     const createRoom = () => {
-        socket.emit('create-room', (newRoomKey) => {
-            setRoomKey(newRoomKey);
-            
-            // navigate('/game', { state: { newRoomKey } });
+        socket.emit('create-room', (response) => {
+            if (response.success) {
+                setRoomKey(response.roomKey);
+                navigate('/game', { state: { roomKey: response.roomKey } });
+            }
         });
     };
 
@@ -19,7 +20,7 @@ function HomePage() {
         if (roomKey) {
             socket.emit('join-room', roomKey, (response) => {
                 if (response.success) {
-                    navigate('/game', { state: { roomKey } }); // Pass roomKey in state
+                    navigate('/game', { state: { roomKey: response.roomKey } }); // Pass roomKey in state
                 } else {
                     alert(response.message || 'Failed to join the room');
                 }

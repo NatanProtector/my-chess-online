@@ -73,6 +73,10 @@ class chessGameWraper {
         return this.game.fen();
     }
 
+    turn = () => {
+        return this.game.turn();
+    }
+
 }
 
 module.exports = chessGameWraper

@@ -1,6 +1,8 @@
 /**
  * Problems:
  * - The game is only deletes when the room is empty after a player leaves, which is a massive flaw.
+ * - The same player can connect twice to the same room
+ * - The player is disconnected only when tab is closed
  * - players make moves for both white and black
  * - 
  */
@@ -32,10 +34,11 @@ io.on('connection', (socket) => {
     socket.on('create-room', (callback) => {
         console.log(`creating room`);
         const roomKey = Math.random().toString(36).substring(2, 8); // Generate a random 6-char key !!!NEED TO FIX, USE CRYPTO!!!
-        rooms[roomKey] = { players: [], game: new chessGameWraper() };
+        rooms[roomKey] = { players: [], game: new chessGameWraper(), game_arangement: null };
+        rooms[roomKey].players.push(socket.id);
         socket.join(roomKey);
         console.log(`Room created: ${roomKey}`);
-        callback(roomKey); // Send the key back to the client
+        callback({success:true,roomKey:roomKey}); // Send the key back to the client
     });
 
     // Join a room
@@ -43,17 +46,42 @@ io.on('connection', (socket) => {
         if (rooms[roomKey] && rooms[roomKey].players.length < 2) {
             rooms[roomKey].players.push(socket.id);
             socket.join(roomKey);
-            console.log(`User ${socket.id} joined room ${roomKey}`);
-            callback({ success: true });
-            console.log(`Players: ${rooms[roomKey].players.join(', ')}`);
-            io.to(roomKey).emit('player-joined', rooms[roomKey].players); // Notify both players
+            callback({ success: true , roomKey: roomKey});
+            if (rooms[roomKey].players.length === 2) {
+                const game_arangement = [];
+                const colors = ['b','w'];
+                rooms[roomKey].players.forEach(element => {
+                    game_arangement.push({
+                        id: element,
+                        color: colors.pop(),
+                    });
+                });
+
+                rooms[roomKey].game_arangement = game_arangement;
+
+                // Emit game arrangement to each player after short delay to allow the client get the roomkey
+                setTimeout(() => {
+                    io.to(roomKey).emit('player-joined', game_arangement);
+                }, 100); // Add a delay to allow listeners to attach
+            }
         } else {
-            callback({ success: false, message: 'Room is full or does not exist' });
+            callback({ success: false, message: 'Room is full or does not exist'});
         }
     });
 
     // Make a move
     socket.on('make-move', (roomKey, move, callback) => {
+
+        if (rooms[roomKey].game_arangement == null) {
+            callback({ success: false, message: 'Game not started' });
+            return;
+        }
+
+        // Check correct turn
+        if (rooms[roomKey].game.turn() !== rooms[roomKey].game_arangement.find((player) => player.id === socket.id)?.color) {
+            callback({ success: false, message: 'It is not your turn' });
+            return;
+        }
 
         const result = rooms[roomKey].game.makeMove(move.sourceSquare, move.targetSquare, move.pieceType);
 
@@ -77,14 +105,15 @@ io.on('connection', (socket) => {
 
     // Handle disconnects
     socket.on('disconnect', () => {
-        console.log(`User disconnected: ${socket.id}`);
         for (const [key, room] of Object.entries(rooms)) {
             if (room.players.includes(socket.id)) {
                 room.players = room.players.filter((id) => id !== socket.id);
                 io.to(key).emit('player-left', socket.id);
-
             }
-            if (room.players.length === 0) delete rooms[key];
+            if (room.players.length === 0) {
+                delete rooms[key];
+                console.log(`Room ${key} deleted`);
+            }
             break;
         }
     });
