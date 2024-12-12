@@ -16,22 +16,41 @@ function ChessGame({ roomKey }) {
         return myColor;
     };
 
-    const getGameOverText = () => {
-        if (game.isGameOver()) {
-            if (game.isCheckmate()) {
-                // Checkmate: Determine the winner based on the current turn.
-                const winner = game.turn() === "w" ? "Black" : "White";
-                return (`Checkmate! ${winner} wins.`);
-            } else if (game.isThreefoldRepetition()) {
-                return ("The game is a draw by threefold repetition.");
-            } else if (game.isInsufficientMaterial()) {
-                return ("The game is a draw due to insufficient material.");
-            } else if (game.isDraw()) {
-                return ("The game is a draw.");
-            } else {
-                return ""
-            }
+    const updateGameStateText = () => {
+        const myColor = getMyColor(game_arangement);
+        const currentTurnColor = game.turn() === "w" ? "White" : "Black";
+
+        var result = ""
+
+        if (game_arangement.length < 2) {
+            result = ("Waiting for second player");
         }
+        else if (game.isGameOver()) {
+            if (game.isCheckmate()) {
+                // Checkmate: Determine the winner based on the current turn.       
+                result = (`Checkmate! ${currentTurnColor} wins.`);
+            } else if (game.isThreefoldRepetition()) {
+                result = ("The game is a draw by threefold repetition.");
+            } else if (game.isInsufficientMaterial()) {
+                result = ("The game is a draw due to insufficient material.");
+            } else if (game.isDraw()) {
+                result = ("The game is a draw.");
+            } else {
+                result = ("Game Over")
+            }
+        } else {
+            
+            if (myColor === game.turn()) {
+
+                result = ("Your turn");
+
+            } else {
+
+                result = (`${currentTurnColor}'s turn`);
+            }
+               
+        }
+        setGameStateText(result);
     }
 
     const transmitMove = (transmition_data) => {
@@ -47,27 +66,23 @@ function ChessGame({ roomKey }) {
     useEffect(() => {
         // Listen for board updates
         socket.on('update-board', (update) => {
-            handleUpdateFromServer(update); // Update the board based on the received move
+            handleUpdateFromServer(update);
+            updateGameStateText();
         });
 
         socket.on('player-joined', (game_arangement) => {
 
-            setGameArangement(game_arangement);
-
-            if (getMyColor(game_arangement) === "w") {
-                setGameStateText("Game started. you are white");
-            } else if (getMyColor(game_arangement) === "b") {
-                setGameStateText("Game started. you are black");
-            } else {
-                setGameStateText("Waiting for players");
-            }
-            
-        });
+            handlePlayerJoined(game_arangement);
+            updateGameStateText();
+        });        
 
         return () => socket.off('update-board');
     }, []);
 
-    // Handle making moves
+    useEffect(() => {
+        updateGameStateText();
+    }, [game, game_arangement]);
+
     const handleUpdateFromServer = (update) => {
 
         setGame(
@@ -75,6 +90,11 @@ function ChessGame({ roomKey }) {
         );
 
     };
+
+    const handlePlayerJoined = (game_arangement) => {
+
+        setGameArangement(game_arangement);
+    }
 
     const onDrop = (sourceSquare, targetSquare,pieceType) => {
         
@@ -97,7 +117,7 @@ function ChessGame({ roomKey }) {
             <h3>{game_state_text}</h3>
             <div style={{width: "420px", height: "420px"}}>
                 {
-                    game_arangement.length != 0 &&
+                    game_arangement.length === 2 &&
                         <Chessboard 
                         boardOrientation={getMyColor(game_arangement) === "w" ? "white" : "black"}
                         position={game.fen()} 
@@ -106,14 +126,6 @@ function ChessGame({ roomKey }) {
                 }
 
             </div>
-
-            {
-                game.isGameOver() && (
-                    <div>
-                        <h2>{getGameOverText()}</h2>
-                    </div>
-                )
-            }
         </div>
     );
 }
