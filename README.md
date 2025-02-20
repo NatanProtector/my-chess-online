@@ -43,8 +43,7 @@ The server is deployed and fully functional, and you can start playing immediate
 
 ## Future Plans
 
-- The server is up and running, and it's possible to play chess. However, there's still room for visual improvements and polish. If you'd like to contribute to improving the user interface or the overall experience, feel free to contact me!
-- I am currently taking a reinforcement learning class, and I plan to develop my own chess AI. Once the AI is ready, I will add the possibility to play against it in the app.
+- The server is up and running, and it's possible to play chess. However, there's still lots of room for visual improvements and polish. If you'd like to contribute to improving the user interface or the overall experience, feel free to contact me!
 
 ## License
 
