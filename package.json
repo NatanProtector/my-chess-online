@@ -3,7 +3,7 @@
     "scripts": {
         "install-all": "npm --prefix ./chess-react-app install && npm --prefix ./chess-server install",
         "build": "npm --prefix ./chess-react-app run build",
-        "start": "npm --prefix ./chess-server start"
+        "start": "npm --prefix ./chess-server run start"
     },
     "author": "Natan Protector",
     "license": "ISC",
