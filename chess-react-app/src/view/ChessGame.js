@@ -106,7 +106,7 @@ function ChessGame({ roomKey }) {
       </div>
       <div className="game-container">
         <div className="game-info">
-          <h3>Room Key: {roomKey}</h3>
+          <h3>Room {roomKey}</h3>
           <h3>{game_state_text}</h3>
         </div>
         <div className="game-board">
